@@ -1,15 +1,15 @@
 {
-  "name": "google-sheets-scripting-starter-pack",
+  "name": "jira-sheets",
   "version": "1.0.0",
   "main": "build/script.js",
-  "repository": "https://github.com/niieani/google-sheets-scripting-starter-pack",
+  "repository": "https://github.com/niieani/jira-sheets",
   "author": "Bazyli Brzoska <bazyli.brzoska@gmail.com>",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "private": true,
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "google:login": "clasp login",
-    "google:create": "clasp create --type sheets --rootDir 'build'",
+    "google:create": "clasp create --type Spreadsheet --rootDir 'build' --title 'Jira Sheets Sync'",
     "google:publish": "yarn build && clasp push",
     "google:open": "clasp open"
   },
@@ -35,6 +35,7 @@
     "axios": "^0.21.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
+    "jira.js": "^1.7.2",
     "stream-browserify": "^3.0.0",
     "tslib": "^2.0.3",
     "url": "^0.11.0"
