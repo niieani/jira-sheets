@@ -21,6 +21,19 @@ Perhaps in the A column we store checkboxes stating "sync" state.
 Whenever you edit something in the (sync) or (property), you can select "sync" from the menu to update these issues.
 To create new issues, we could just check if there are rows with an empty "key".
 
+Non-synced properties should use
+[Protection](https://developers.google.com/apps-script/reference/spreadsheet/protection)
+with warning.
+
+We can keep the row order because when we fill in/sync new data, we can just
+re-use the keys that are already there.
+
+Maybe two buttons - update Spreadsheet, update Jira.
+Use onEdit trigger to mark changed values (also change background?).
+Possibly store original synced value and when syncing to Jira -- compare them.
+If they're different, potential conflict.
+Reset them after update from Jira.
+
 Maybe there's a mode for grouping:
 
 - subtasks/epic issues could be automatically grouped under a foldable row?

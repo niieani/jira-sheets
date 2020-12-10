@@ -2,6 +2,7 @@ import { configure } from './ui'
 import { googleAppsAdapter } from './google-apps-interop/googleAppsAdapter'
 import { getColumnName } from './helpers'
 import { SearchResult } from './types/searchForIssues'
+import { get } from 'lodash-es'
 
 // we use a symlinked jira.js because we want to compile it for es-modules,
 // rather than use the pre-compiled commonjs version which would trip up rollup
@@ -56,34 +57,53 @@ export async function workflow({
   })
 
   try {
+    const sheet = SpreadsheetApp.getActiveSheet()
+    const headersColumn = sheet.getRange(1, 1, 1, sheet.getLastColumn())
+    const columns = headersColumn.getValues().flat()
+
+    // remove empty columns:
+    while (columns[columns.length - 1] === '') columns.pop()
+
+    const fields = columns
+      .map((column) => column.split('.')[0])
+      .filter((column) => column != null && column !== 'key')
+
     const result: SearchResult = await client.issueSearch.searchForIssuesUsingJqlGet(
       {
         jql: `project = ${project}`,
         maxResults: 10,
-        fields: ['summary', 'status', 'assignee', 'created'],
+        fields,
+        // fields: ['summary', 'status', 'assignee', 'created'],
       },
     )
 
-    Logger.log('got result')
-
     // client.issues.editIssue({ fields })
     // Logger.log(result)
-    const sheet = SpreadsheetApp.getActive()
-    const [firstResult] = result.issues
-    const resultKeys = Object.keys(firstResult.fields)
-    const keys = ['issuekey', ...resultKeys]
-    const values = result.issues.map((issue) => [
-      issue.key,
-      ...resultKeys.map((key) =>
-        typeof issue.fields[key] === 'object'
-          ? JSON.stringify(issue.fields[key], null, 2)
-          : issue.fields[key],
-      ),
-    ])
-    const range = sheet.getRange(
-      `A1:${getColumnName(keys.length)}${values.length + 1}`,
+    // const [firstResult] = result.issues
+    // const resultKeys = Object.keys(firstResult.fields)
+    // const fields = ['issuekey', ...resultKeys]
+    const values = result.issues.map((issue) =>
+      columns.map((key) => {
+        if (key === 'key') {
+          return issue.key
+        } else {
+          const value = get(issue.fields, key, null)
+          Logger.log(`${key}: ${JSON.stringify(value, null, 2)}`)
+          if (value == null) return ''
+          return typeof value === 'object'
+            ? JSON.stringify(value, null, 2)
+            : value
+        }
+      }),
     )
-    range.setValues([keys, ...values])
+    const range = sheet.getRange(
+      2,
+      1,
+      values.length,
+      columns.length,
+      // `B1:${getColumnName(1 + fields.length)}${values.length + 1}`,
+    )
+    range.setValues(values)
   } catch (e) {
     Logger.log('error')
     Logger.log(e)
